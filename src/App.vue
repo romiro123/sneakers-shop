@@ -103,10 +103,16 @@ provide('basket', {
 <template>
   <Drawer v-if="drawerOpen" :total-price="totalPrice" :vat-price="vatPrice" @create-order="createOrder"
     :button-disabled="basketButtonDisabled" />
-  <div class="w-4/5 m-auto bg-white rounded-xl shadow-xl mt-10 mb-10">
+  <div class=" m-auto bg-white rounded-xl shadow-xl mt-10 mb-10 
+  md:w-11/12
+  lg:w-4/5 
+  xl:w-4/5 
+  2xl:w-4/5
+  
+  w-11/12 ">
     <Header @open-drawer="openDrawer" :total-price="totalPrice" />
 
-    <div class="p-10">
+    <div class="p-6 sm:p-10">
       <HomePage></HomePage>
     </div>
   </div>
