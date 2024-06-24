@@ -1,32 +1,31 @@
 <script setup>
-import { reactive, watch, ref, onMounted } from 'vue'
+import { ref, reactive, computed, watch, onMounted } from 'vue'
 import axios from 'axios'
-import { inject } from 'vue'
+import { inject } from 'vue';
 import CardList from '../components/CardList.vue'
 
-const { cart, addToCart, removeFromCart } = inject('cart')
+const { items, basketItems, addToBasket, removeFromBasket } = inject('basket')
 
-// ref - используют при работе с массивом
+// ref при работе с arr
 //state который храник все товары
-const items = ref([])
 
-//reactive - используют при работе с объектом
+
+// //меняем на obj filters
+// const sortBy = ref('')
+// const searchQuery = ref('')
+// const onChangeSelect = (event) => {
+//   sortBy.value = event.target.value
+// }
+// const onChangeSearch = (event) => {
+//   searchQuery.value = event.target.value
+// }
+
+//reactive при работе с obj
 //state который хранит фильтры
 const filters = reactive({
   sortBy: 'title',
   searchQuery: ''
 })
-
-//клик по + (добаление/удаление из корзины)
-const onClickAddPlus = (item) => {
-  console.log(item)
-  if (!item.isAdded) {
-    addToCart(item)
-  } else {
-    removeFromCart(item)
-  }
-  console.log(cart)
-}
 
 //следит за изменением селекта
 const onChangeSelect = (event) => {
@@ -105,8 +104,25 @@ const fetchItems = async () => {
       isFavorite: false,
       favoriteId: null
     }))
+
+    // if (basketItems.value.length !== 0) {
+    //   basketItems.value.forEach(element => {
+    //     console.log(element.id)
+    //     items.value.find(item => item.id === element.id).isAdded = true
+    //   });
+    // }
+
   } catch (err) {
     console.log(err)
+  }
+}
+
+//клик по + (добаление/удаление из корзины)
+const onClickAddPlus = (item) => {
+  if (!item.isAdded) {
+    addToBasket(item)
+  } else {
+    removeFromBasket(item)
   }
 }
 
@@ -144,25 +160,35 @@ const fetchItems = async () => {
 // //     console.log(err)
 // //   }
 // // })
+
+/**/
+//следит за изменением .value корзины
 onMounted(async () => {
-  //получаем данные из localStorage
-  const localCart = localStorage.getItem('cart')
-  cart.value = localCart ? JSON.parse(localCart) : []
+  const localBasketItems = localStorage.getItem('basket')
+  basketItems.value = localBasketItems ? JSON.parse(localBasketItems) : [];
 
   await fetchItems()
   await fetchFavorites()
 
   items.value = items.value.map((item) => ({
     ...item,
-    isAdded: cart.value.some((cartItem) => cartItem.id === item.id)
+    isAdded: basketItems.value.some((basketItem) => basketItem.id === item.id)
   }))
 })
 
 
+watch(basketItems, () => {
+  console.log(basketItems.value)
+  items.value = items.value.map((item) => ({
+    ...item,
+    isAdded: false
+  }
+  ))
+})
 
 watch(filters, fetchItems)
-</script>
 
+</script>
 
 <template>
   <div class="flex justify-between items-center">
@@ -180,9 +206,10 @@ watch(filters, fetchItems)
         <input @input="onChangeSearch" type="text" placeholder="Поиск..."
           class="border rounded-md py-2 pl-10 pr-4 outline-none focus:border-grey-400" />
       </div>
-
     </div>
   </div>
 
-  <CardList :items="items" @add-to-favorite="addToFavorite" @add-to-cart="onClickAddPlus"></CardList>
+  <div>
+    <CardList :items="items" @add-to-favorite="addToFavorite" @add-to-basket="onClickAddPlus" />
+  </div>
 </template>
